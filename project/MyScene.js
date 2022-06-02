@@ -178,7 +178,7 @@ class MyPhysiScene extends PHY.Scene {
       return new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
     });
 
-    var skyboxGeo = new THREE.BoxGeometry(5000, 5000, 5000);
+    var skyboxGeo = new THREE.BoxGeometry(1000, 1000, 1000);
     var skyboxmesh = new THREE.Mesh(skyboxGeo, materialArray);
     this.skybox = new THREE.Object3D();
     this.skybox.add(skyboxmesh);
