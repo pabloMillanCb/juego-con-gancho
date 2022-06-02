@@ -327,7 +327,6 @@ class MyPhysiScene extends PHY.Scene {
 
     //Creamos el cronometro
     this.time=new THREE.Clock();
-    this.time.start();
     this.timediv=document.createElement('time');
     this.timediv.className='time';
     this.timediv.style.marginTop='-1em';
@@ -616,6 +615,10 @@ $(function () {
     if(scene.menu){
       scene.menu=false;
       scene.destroyMenu();
+      if (scene.time){
+        scene.time.start();
+      }
+
     } else{
 
     var mouse=new THREE.Vector2();
