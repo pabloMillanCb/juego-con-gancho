@@ -33,6 +33,8 @@ class MyPhysiScene extends PHY.Scene {
     // Se establece el valor de la gravedad, negativo, los objetos caen hacia abajo
     this.setGravity (new THREE.Vector3 (0, -20, 0));
 
+    this.music_playing = true;
+
     this.premios = []
     this.premios_update = []
     this.premios_hud = []
@@ -157,10 +159,19 @@ class MyPhysiScene extends PHY.Scene {
       restriccionHitbox.setAngularLowerLimit({x:0,y:0,z:0})
       restriccionHitbox.setAngularUpperLimit({x:0,y:0,z:0})
 
+      // Creamos el diccionario de animacioens
       const gltfAnimations = gltf;
       const mixer = new THREE.AnimationMixer( model );
       const animationsMap = that.createActions(gltf.animations, mixer);
       var sounds = [that.fall, that.jump, that.hookyes, that.hookno]
+
+      // Añadimos el target a la camara
+      var cameraTarget = new THREE.Vector3();
+      cameraTarget.x = figura.position.x;
+      cameraTarget.z = figura.position.z;
+      cameraTarget.y = figura.position.y+2;
+      that.cameraControl.target= cameraTarget;
+
       that.characterControls = new Player(model,figura, mixer, animationsMap, that.cameraControl,that.suelos, that.camera, 'Idle', that.LuzPuntual, sounds);
     }); 
   }
@@ -276,7 +287,7 @@ class MyPhysiScene extends PHY.Scene {
   createCamera () {
     this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
     this.camera.position.x=0;
-    this.camera.position.y=5+2;
+    this.camera.position.y=5;
     this.camera.position.z=10;
     this.add (this.camera);
     
@@ -604,6 +615,19 @@ $(function () {
 
       if (ev.key.toLowerCase() == 'c'){
         scene.characterControls.changeBaseVel();
+      }
+
+      if (ev.key.toLowerCase() == 'm'){
+        if (scene.music_playing){
+          scene.music.setVolume(0);
+          scene.victory.setVolume(0);
+          scene.music_playing = false;
+        }
+        else{
+          scene.music.setVolume(0.2);
+          scene.victory.setVolume(0.2);
+          scene.music_playing = true;
+        }
       }
 
   });

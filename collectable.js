@@ -58,11 +58,11 @@ class Collectable {
 
     //Creamos las animaciones de rotar y mover
     var origen = {y: h};
-    var destino = {y: h+0.3};
+    var destino = {y: h+0.8};
     var origenR = {y: 0.01};
     var destinoR = {y: 0.01};
 
-    this.movimiento = new TWEEN.Tween(origen).to(destino, 1200);
+    this.movimiento = new TWEEN.Tween(origen).to(destino, 1200).easing(TWEEN.Easing.Quadratic.InOut);
     this.movimientoR = new TWEEN.Tween(origenR).to(destinoR, 5000);
 
     this.movimiento.onUpdate (() =>{
@@ -83,8 +83,6 @@ class Collectable {
     this.obtenerAnimacion = new TWEEN.Tween( this.csgMesh.scale )
     	.to( targetPosition, 200 )
         .easing( TWEEN.Easing.Cubic.InOut );
-
-
     this.last_visible = true;
     this.sound = sonido;
     

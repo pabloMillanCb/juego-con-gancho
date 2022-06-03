@@ -5,6 +5,7 @@ class Player {
 
     constructor(modelo, collisioner, mixer, mapaAnimaciones, orbitControl, suelos,camera, accionActual, luz, sounds){
 
+        // Variables de control de movimiento
         this.runvelocity = 17;
         this.walkvelocity = 10;
         this.fadein = 0.5;
@@ -69,6 +70,7 @@ class Player {
         });
     }
 
+    // Se comprueba si está tocando el suelo para descativar las físicas
     checkGroundCollision(){
         this.raycaster_ground.set(this.collisioner.position, new THREE.Vector3(0,-1,0));
         var intersects = this.raycaster_ground.intersectObjects(this.suelos);
@@ -79,6 +81,7 @@ class Player {
         }
     }
 
+    // Se comprueba si se está chocando contra el techo para limitar el movimiento en Y
     checkCeilCollision(){
         this.raycaster_ceil.set(this.collisioner.position, new THREE.Vector3(0,1,0));
         var intersects = this.raycaster_ceil.intersectObjects(this.suelos);
@@ -109,6 +112,7 @@ class Player {
         this.collisioner.setAngularVelocity(new THREE.Vector3(0,0,0));
     }
 
+    // Hacer que el personaje reaparezca en una posición determinada
     respawn(x, y, z){
         this.collisioner.__dirtyPosition = false;
         this.collisioner.position.x=x;
@@ -120,6 +124,7 @@ class Player {
         this.lose = false;
     }
 
+    // Si pierde, se activa la animación de muerte
     to_lose(){
         if (this.lose == false){
             this.lose = true;
@@ -128,6 +133,8 @@ class Player {
         }
     }
 
+    // Si se ha ganado se restringe el movimiento del personaje para iniciar
+    // el baile de la victoria
     to_win(){
         this.block_movement = true;
         const current = this.mapaAnimaciones.get(this.accionActual);
@@ -138,11 +145,13 @@ class Player {
         
     }
 
+    // Direccion a la que está mirando el personaje.
     getDirection(){
         var dir = new THREE.Vector3(wd.x, wd.y, wd.z);
         return dir;
     }
 
+    // Si estamos enganchados actualiza la posición del personaje
     hook_movement(teclas,delta){
 
         const hook_conf= teclas['shift'];
@@ -162,6 +171,7 @@ class Player {
 
     update (delta, teclas){
 
+        // Si estamos enganchados dibujamos el cable
         if(this.hooked){
             if(this.line.visible==false){
                 this.line.visible=true;
@@ -173,6 +183,8 @@ class Player {
             this.line.geometry=line;
         }
 
+        // Si hay inercia en el movimiento del gancho se apllica un 
+        // impulso
         if(this.inercy){
             var vector_gancho=new THREE.Vector3(0,0,0)
             vector_gancho.subVectors(this.punto,this.collisioner.position);   
@@ -183,40 +195,46 @@ class Player {
         }
         const directionpressed= teclas['w'] || teclas['s'] || teclas['a'] || teclas['d'];
         const jumpingstart= teclas[' ']||teclas[' '] && teclas['w']||teclas[' '] && teclas['s']||teclas[' '] && teclas['a']||teclas[' '] && teclas['d'];
-        if(!this.block_movement){
 
-        var last_y = this.collisioner.position.y;
+        // Almacenamos qué animación debe ser reproducida en función a la acción actual
+        if (!this.block_movement){
 
-        if (teclas['shift']){
-            this.corriendo = !this.corriendo_base;
-        }
-        else{
-            this.corriendo = this.corriendo_base;
-        }
-        var play = '';
-        if(jumpingstart && !this.airbone){
+            if (teclas['shift']){
+                this.corriendo = !this.corriendo_base;
+            }
+            else{
+                this.corriendo = this.corriendo_base;
+            }
+            var play = '';
+            if(jumpingstart && !this.airbone){
 
-            play = 'Jump';
-        } 
-        else if (directionpressed && this.corriendo && !this.airbone) {
-            play = 'Running';
-        }
-        else if(directionpressed && !this.airbone){
-            play = 'Walking';
-        } 
-        else {
-            play = 'Idle';
-        } 
-        if (this.accionActual != play){
-            const toPlay = this.mapaAnimaciones.get(play);
-            const current = this.mapaAnimaciones.get(this.accionActual);
-            
+                play = 'Jump';
+            } 
+            else if (directionpressed && this.corriendo && !this.airbone) {
+                play = 'Running';
+            }
+            else if(directionpressed && !this.airbone){
+                play = 'Walking';
+            } 
+            else {
+                play = 'Idle';
+            } 
 
-            current.fadeOut(this.fadein);
-            toPlay.reset().fadeIn(this.fadein).play();
-            this.accionActual = play;
+            // Si hemos cambiado a una nueva animación, realizamos un fade para
+            // una transición suavemente. Si es la misma que antes, no hacemos nada
+            if (this.accionActual != play){
+                const toPlay = this.mapaAnimaciones.get(play);
+                const current = this.mapaAnimaciones.get(this.accionActual);
+                
+
+                current.fadeOut(this.fadein);
+                toPlay.reset().fadeIn(this.fadein).play();
+                this.accionActual = play;
+            }
         }
-    }
+
+        // Dependiendo de si estamos en el suelo o en el aire, llamamos a uno de los
+        // metodos para actualizar la posición de la cámara
         this.mixer.update(delta);
         if(this.hooked && this.airbone){
             this.hook_movement(teclas,delta)
@@ -226,7 +244,9 @@ class Player {
 
         } 
         else{
- 
+            
+            // Si nos estamos moviendo calculamos el ángulo del movimiento con la cámara,
+            // y aplicamos el movimiento en esa dirección.
             if (this.accionActual=='Running' || this.accionActual=="Walking" || this.accionActual=="Jump") {
                 var anguloYconlacamara = Math.atan2(
                     (this.camera.position.x - this.collisioner.position.x),
@@ -259,6 +279,7 @@ class Player {
                 }
                 this.updateCameraTarget(moveX, moveZ);
 
+                // Si estamos corriendo o en el suelo, nos movemos con dirty positions
                 if(this.accionActual=='Running' || this.accionActual=="Walking"){
                     this.collisioner.__dirtyPosition = false;
                     this.collisioner.position.x-=moveX;
@@ -266,6 +287,7 @@ class Player {
                     this.collisioner.__dirtyPosition = true;
                 }
 
+                // Si saltamos, nos movemos con físicas
                 if(this.accionActual=='Jump'){
                     var fuerza=3;
                     var direccion=new THREE.Vector3(-moveX*1.2,1,-moveZ*1.2);
@@ -273,13 +295,11 @@ class Player {
                     this.collisioner.applyCentralImpulse(effect)
                     this.airbone=true;
                     this.sounds[1].play();
-
-
-
                 }
             }
         }
 
+        // Se comprueban colisiones con el suelo y el techo
         this.checkGroundCollision();
         this.checkCeilCollision();
 
@@ -289,6 +309,7 @@ class Player {
             this.collisioner.setAngularVelocity(new THREE.Vector3(0,0,0));
         }
 
+        // Se actualiza la posición de la luz puntual que acompaña al personaje.
         this.luz_puntual.position.set(this.collisioner.position.x,this.collisioner.position.y+2,this.collisioner.position.z);
     }
 
@@ -296,6 +317,8 @@ class Player {
         this.corriendo_base = !this.corriendo_base;
     }    
 
+    // Se calcula la dirección en la que tenemos que estar caminando 
+    // en función de la dirección que estemos presionando.
     directionoffset(teclas){
         var directionoffset=0;
         if(teclas["w"]) {
@@ -321,7 +344,8 @@ class Player {
         return directionoffset;
     } 
 
-
+    // Cuando soltamos el gancho, si estabamos recogiéndolo salimos disparados
+    // con inercia.
     release_hook(scene){
         if(this.hooked){
         this.hooked=false;
@@ -333,6 +357,7 @@ class Player {
 
     }
 
+    // Probamos a enganchar el gancho en un punto determinado de la pantalla
     try_hook(scene,mouse,line){
         this.raycaster_hook.setFromCamera(mouse, this.camera);
         var intersects = this.raycaster_hook.intersectObjects(this.suelos);
@@ -348,7 +373,7 @@ class Player {
         this.line=line;
     }
 
-
+    // Actualizamos la cámara en el aire
     updateCameraTargetairbone(delta){
 
         if (this.lose == false){
@@ -366,6 +391,7 @@ class Player {
         }
     }
 
+    // Actualizamos la cámara en tierra.
     updateCameraTarget(moveX,moveZ){
 
         //Modificamos la posición de la cámara

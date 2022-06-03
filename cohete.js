@@ -39,11 +39,11 @@ class Cohete extends THREE.Object3D {
         sphere.position.set(-30,-5,-70);
         this.add(sphere);
         // Construimos animacion cohete
-        var origin={y:5,};
+        var origin={y:0,};
         var target={y:10};
-        var time=4000;
+        var time=3000;
         this.tween = new TWEEN.Tween(origin).to(target, time)
-        .easing(TWEEN.Easing.Linear.None)
+        .easing(TWEEN.Easing.Quadratic.InOut)
         .onUpdate(() => {
             this.position.y=origin.y;
             //this.rotateOnAxis(new THREE.Vector3(0,1,0),origin.r);
@@ -56,10 +56,6 @@ class Cohete extends THREE.Object3D {
     update(){
         TWEEN.update();
     }
-
-
-
-
 }
 
 export {Cohete}
